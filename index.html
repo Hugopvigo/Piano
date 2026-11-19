@@ -1,0 +1,469 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<link rel="icon" href="data:,">
+<title>SOFIA — Piano Keyboard</title>
+<style>
+  :root{
+    --bg:#14100d;
+    --wood:#3a2a1c;
+    --wood-lt:#5a4128;
+    --ivory:#f6f1e4;
+    --ivory-sh:#ded7c6;
+    --ebony:#171310;
+    --gold:#c9a227;
+    --felt:#7a1f1f;
+    --text:#f0e7d6;
+    --muted:rgba(240,231,214,.55);
+    --mono:ui-monospace,"SF Mono",Menlo,Consolas,monospace;
+    --sans:ui-sans-serif,-apple-system,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+    --serif:"Iowan Old Style",Palatino,Georgia,serif;
+  }
+  *{box-sizing:border-box}
+  html,body{margin:0}
+  body{
+    background:var(--bg);color:var(--text);font-family:var(--sans);
+    -webkit-font-smoothing:antialiased;overflow-x:hidden;caret-color:var(--gold);
+    scrollbar-color:var(--wood-lt) var(--bg);
+    background-image:radial-gradient(80% 60% at 50% 0%,#241b13,#14100d 70%);
+  }
+  ::selection{background:rgba(201,162,39,.35);color:#fff}
+  ::-webkit-scrollbar{width:10px;height:10px}
+  ::-webkit-scrollbar-track{background:var(--bg)}
+  ::-webkit-scrollbar-thumb{background:var(--wood-lt);border-radius:6px}
+  .sr-only{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap;border:0}
+  :focus-visible{outline:2px solid var(--gold);outline-offset:3px}
+
+  .wrap{max-width:1180px;margin:0 auto;padding:0 clamp(16px,4vw,40px)}
+
+  nav{display:flex;align-items:center;justify-content:space-between;gap:16px;flex-wrap:wrap;padding:24px 0 0}
+  .brand{font-family:var(--serif);font-size:17px;letter-spacing:.42em;text-transform:uppercase}
+  nav ul{display:flex;gap:clamp(12px,2.2vw,28px);list-style:none;margin:0;padding:0}
+  nav a{color:var(--muted);text-decoration:none;font-family:var(--mono);font-size:9.5px;letter-spacing:.2em;text-transform:uppercase;transition:color .2s;text-underline-offset:4px}
+  nav a:hover{color:var(--gold)}
+
+  .hero{text-align:center;padding:clamp(34px,7vw,88px) 0 clamp(20px,4vw,40px)}
+  .hero .k{font-family:var(--mono);font-size:9.5px;letter-spacing:.36em;text-transform:uppercase;color:var(--gold);display:block;margin-bottom:22px}
+  .hero h1{font-family:var(--serif);font-weight:400;font-size:clamp(32px,6vw,76px);line-height:.98;letter-spacing:-.025em;margin:0 0 22px;text-wrap:balance}
+  .hero h1 i{font-style:italic;color:var(--gold)}
+  .hero p{font-size:14px;line-height:1.85;color:var(--muted);max-width:52ch;margin:0 auto}
+
+  /* ---------- the instrument ---------- */
+  .piano{
+    margin:clamp(20px,4vw,44px) 0;
+    background:linear-gradient(180deg,var(--wood-lt),var(--wood) 30%,#241a10);
+    border-radius:14px 14px 8px 8px;
+    padding:26px 22px 22px;
+    box-shadow:0 40px 80px -40px rgba(0,0,0,.95),inset 0 2px 0 rgba(255,220,170,.14);
+    position:relative;
+  }
+  .piano::before{
+    content:"";position:absolute;top:9px;left:22px;right:22px;height:5px;border-radius:3px;
+    background:linear-gradient(90deg,transparent,rgba(255,225,180,.16),transparent)
+  }
+  .deck{position:relative}
+  .fall{
+    height:14px;margin:0 0 20px;border-radius:2px;
+    background:repeating-linear-gradient(90deg,rgba(0,0,0,.35) 0 2px,transparent 2px 7px);
+    box-shadow:0 6px 14px rgba(0,0,0,.6) inset;
+    border-bottom:2px solid rgba(0,0,0,.5);
+    position:relative;
+  }
+  .fall b{
+    position:absolute;top:0;bottom:0;left:0;width:0;opacity:0;
+    background:linear-gradient(180deg,rgba(201,162,39,.9),rgba(201,162,39,.35));
+    box-shadow:0 0 14px rgba(201,162,39,.7);
+    transition:left .06s linear,width .06s linear,opacity .22s ease-out
+  }
+  .keys{position:relative;height:clamp(120px,20vw,190px);user-select:none;touch-action:none}
+  .wk{
+    position:absolute;top:0;bottom:0;border-radius:0 0 5px 5px;
+    background:linear-gradient(180deg,var(--ivory) 82%,var(--ivory-sh));
+    box-shadow:inset -2px 0 3px rgba(0,0,0,.18),inset 2px 0 2px rgba(255,255,255,.5),inset 0 -6px 8px rgba(0,0,0,.12),0 4px 6px rgba(0,0,0,.5);
+    cursor:pointer;transition:transform .04s,box-shadow .04s,background .04s;
+    display:flex;align-items:flex-end;justify-content:center;padding-bottom:8px;
+    font-family:var(--mono);font-size:8px;color:rgba(23,19,16,.35);letter-spacing:.06em
+  }
+  .wk.on{
+    transform:translateY(2px);
+    background:linear-gradient(180deg,#e8dfc9 70%,#cfc6b0);
+    box-shadow:inset 0 4px 8px rgba(0,0,0,.3),0 1px 2px rgba(0,0,0,.5)
+  }
+  .bk{
+    position:absolute;top:0;height:62%;border-radius:0 0 4px 4px;z-index:3;
+    background:linear-gradient(180deg,#2a2320 0%,#100d0b 70%,#050403);
+    box-shadow:inset 0 -3px 4px rgba(255,255,255,.06),0 5px 9px rgba(0,0,0,.8);
+    cursor:pointer;transition:transform .04s,box-shadow .04s,background .04s;
+    display:flex;align-items:flex-end;justify-content:center;padding-bottom:6px;
+    font-family:var(--mono);font-size:7px;color:rgba(240,231,214,.3)
+  }
+  .bk.on{
+    transform:translateY(2px);
+    background:linear-gradient(180deg,#3d332e,#0d0a09);
+    box-shadow:inset 0 3px 6px rgba(0,0,0,.7),0 2px 4px rgba(0,0,0,.7)
+  }
+  .felt-strip{height:6px;margin-top:14px;background:var(--felt);border-radius:0 0 4px 4px;box-shadow:0 6px 16px -6px rgba(122,31,31,.9)}
+
+  /* ---------- controls ---------- */
+  .tray{
+    display:flex;gap:clamp(8px,1.4vw,16px);flex-wrap:wrap;align-items:center;justify-content:center;
+    background:rgba(31,24,18,.7);border:1px solid rgba(201,162,39,.18);border-radius:14px;
+    padding:12px clamp(12px,2vw,22px);margin-bottom:clamp(20px,4vw,40px);backdrop-filter:blur(10px)
+  }
+  .g{display:flex;align-items:center;gap:8px}
+  .kk{font-family:var(--mono);font-size:8.5px;letter-spacing:.18em;text-transform:uppercase;color:var(--muted)}
+  .vv{font-family:var(--mono);font-size:9.5px;color:var(--gold);min-width:28px;font-variant-numeric:tabular-nums}
+  input[type=range]{
+    -webkit-appearance:none;appearance:none;width:66px;height:14px;background:transparent;cursor:pointer
+  }
+  input[type=range]::-webkit-slider-runnable-track{height:2px;background:rgba(240,231,214,.24);border-radius:2px}
+  input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:11px;height:11px;border-radius:50%;background:var(--gold);margin-top:-5px;border:0}
+  input[type=range]::-moz-range-track{height:2px;background:rgba(240,231,214,.24);border-radius:2px}
+  input[type=range]::-moz-range-thumb{width:11px;height:11px;border:0;border-radius:50%;background:var(--gold)}
+  button{
+    font-family:var(--mono);font-size:8.5px;letter-spacing:.18em;text-transform:uppercase;
+    background:rgba(201,162,39,.14);border:1px solid rgba(201,162,39,.4);color:var(--text);
+    padding:9px 14px;border-radius:999px;cursor:pointer;transition:background .2s,color .2s
+  }
+  button:hover{background:var(--gold);color:#1a1408}
+  button.on{background:var(--gold);color:#1a1408}
+
+  /* ---------- reading ---------- */
+  .cols{display:grid;grid-template-columns:repeat(3,1fr);gap:1px;background:rgba(201,162,39,.16);border:1px solid rgba(201,162,39,.16);margin:clamp(20px,4vw,44px) 0}
+  .cols div{background:var(--bg);padding:28px 26px}
+  .cols b{display:block;font-family:var(--serif);font-weight:400;font-size:34px;color:var(--gold);line-height:1;margin-bottom:12px}
+  .cols h2{font-family:var(--mono);font-size:9.5px;letter-spacing:.24em;text-transform:uppercase;margin:0 0 12px}
+  .cols p{margin:0;font-size:12.5px;line-height:1.85;color:var(--muted)}
+
+  .note{
+    text-align:center;padding:clamp(24px,5vw,56px) clamp(16px,4vw,40px);border-top:1px solid rgba(201,162,39,.16);
+    border-bottom:1px solid rgba(201,162,39,.16)
+  }
+  .note span{font-family:var(--mono);font-size:9px;letter-spacing:.3em;text-transform:uppercase;color:var(--gold);display:block;margin:12px 0 16px}
+  .note p{font-family:var(--serif);font-style:italic;font-size:clamp(16px,2.4vw,24px);line-height:1.9;margin:0 auto;max-width:34ch}
+
+  footer{padding:28px 0 48px;display:flex;justify-content:space-between;gap:14px;flex-wrap:wrap;border-top:1px solid rgba(201,162,39,.16);font-family:var(--mono);font-size:9px;letter-spacing:.2em;text-transform:uppercase;color:var(--muted)}
+
+  @media (max-width:880px){.cols{grid-template-columns:1fr}}
+  @media (max-width:560px){.wk,.bk{font-size:0}}
+  @media (prefers-reduced-motion:reduce){
+    .wk,.bk,.fall b,button,nav a{transition:none}
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <nav>
+    <div class="brand">Sofia</div>
+    <ul>
+      <li><a href="#play">Tocar</a></li>
+      <li><a href="#read">El mecanismo</a></li>
+      <li><a href="#tune">El toque</a></li>
+    </ul>
+  </nav>
+
+  <header class="hero">
+    <span class="k">Toca, pulsa o escribe · A S D F G H J</span>
+    <h1>Un salón para <i>ochenta y ocho</i> teclas.</h1>
+    <p>Cada nota se genera en el navegador con cuatro osciladores senoidales y una
+    reverberación por convolución creada al vuelo: ninguna muestra, ningún archivo.
+    Golpea con más fuerza y se ilumina, como un macillo real.</p>
+  </header>
+
+  <section id="play" aria-label="Instrumento">
+    <div class="piano">
+      <div class="deck">
+        <div class="fall" aria-hidden="true"><b id="fall"></b></div>
+        <div class="keys" id="keys" role="group" aria-label="Teclado: usa las teclas A, W, S, E, D, F, T, G, Y, H, U, J, K, O, L"></div>
+        <div class="felt-strip" aria-hidden="true"></div>
+      </div>
+    </div>
+    <p class="sr-only" id="status" aria-live="polite"></p>
+    <div class="tray">
+      <div class="g"><label class="kk" for="oct">Octavas</label><input type="range" id="oct" min="1" max="5" value="3" aria-label="Número de octavas visibles"><span class="vv" id="octV">3</span></div>
+      <div class="g"><label class="kk" for="rel">Release</label><input type="range" id="rel" min="10" max="90" value="34" aria-label="Duración del soltado"><span class="vv" id="relV">34</span></div>
+      <div class="g"><label class="kk" for="rev">Reverb</label><input type="range" id="rev" min="0" max="100" value="42" aria-label="Cantidad de reverberación"><span class="vv" id="revV">42</span></div>
+      <button type="button" id="demo">Tocar una figura</button>
+      <button type="button" id="sustain" class="on" aria-pressed="true">Sostenido</button>
+    </div>
+  </section>
+
+  <section class="cols" id="read" aria-label="Anatomía del instrumento">
+    <div><b>3</b><h2>Cuerdas por nota</h2><p>En el centro del teclado, tres cuerdas afiladas al unísono; en el bajo, una sola, gruesa y enrollada en cobre.</p></div>
+    <div><b>88</b><h2>Blancas y negras</h2><p>52 teclas blancas y 36 negras, desde el A0 de 27,5 herzios hasta el C8 de 4186: cinco octavas y media.</p></div>
+    <div><b>230</b><h2>Cuerdas en total</h2><p>Sujetas por un armazón de hierro fundido que resiste hasta veinte toneladas de tensión. De ahí su peso.</p></div>
+  </section>
+
+  <section class="note" id="tune" aria-label="Sobre el toque">
+    <span>Sobre el toque</span>
+    <p>Un piano no puede sonar más fuerte después de haber empezado la nota. Todo lo que oirás se decide en los primeros milisegundos.</p>
+  </section>
+
+  <footer>
+    <span>Web Audio · generado en directo</span>
+    <span>Temperamento igual · A4 = 440 Hz</span>
+    <span>Diseño: Hugo Perez-Vigo</span>
+  </footer>
+</div>
+
+<script>
+(function(){
+  "use strict";
+
+  var ac=null, master=null, comp=null, revGain=null;
+  var release=34, reverb=42, sustain=true, voices=[];
+  var NOTES=['C','C#','D','D#','E','F','F#','G','G#','A','A#','B'];
+  var SHARP={1:1,3:1,6:1,8:1,10:1};
+
+  function initAudio(){
+    if(ac)return true;
+    var Ctx=window.AudioContext||window.webkitAudioContext;
+    if(!Ctx)return false;
+    try{ac=new Ctx();}catch(e){return false;}
+
+    master=ac.createGain();
+    master.gain.value=0.8;
+    comp=ac.createDynamicsCompressor();
+    comp.threshold.value=-18;
+    comp.ratio.value=6;
+
+    /* 1.8 s de ruido estéreo que decae: respuesta al impulso de la sala */
+    var conv=ac.createConvolver();
+    var len=Math.floor(ac.sampleRate*1.8);
+    var buf=ac.createBuffer(2,len,ac.sampleRate);
+    for(var ch=0;ch<2;ch++){
+      var d=buf.getChannelData(ch);
+      for(var i=0;i<len;i++){
+        d[i]=(Math.random()*2-1)*Math.pow(1-i/len,2.2);
+      }
+    }
+    conv.buffer=buf;
+
+    revGain=ac.createGain();
+    revGain.gain.value=reverb/140;
+    master.connect(comp);
+    comp.connect(revGain);
+    revGain.connect(conv);
+    conv.connect(ac.destination);
+    comp.connect(ac.destination);
+    return true;
+  }
+
+  function freq(n,oct){
+    var midi=(oct+1)*12+n;
+    return 440*Math.pow(2,(midi-69)/12);
+  }
+
+  function dampVoice(v){
+    var now=ac.currentTime;
+    try{
+      v.g.gain.cancelScheduledValues(now);
+      v.g.gain.setTargetAtTime(0.0001,now,0.045);
+      for(var i=0;i<v.oscs.length;i++){
+        try{v.oscs[i].stop(now+0.25);}catch(e){}
+      }
+    }catch(e){}
+  }
+
+  function dampAll(){
+    if(!ac)return;
+    for(var i=0;i<voices.length;i++)dampVoice(voices[i]);
+    voices.length=0;
+  }
+
+  function play(n,oct,vel){
+    if(!initAudio())return;
+    if(ac.state==='suspended')ac.resume();
+    var t=ac.currentTime;
+    var f=freq(n,oct);
+    var g=ac.createGain();
+    var peak=vel*0.28;
+    var rel=sustain?((release/100)*2.4+0.2):0.22;
+
+    g.gain.setValueAtTime(0.0001,t);
+    g.gain.linearRampToValueAtTime(peak,t+0.006);
+    g.gain.exponentialRampToValueAtTime(peak*0.35,t+0.14);
+    g.gain.exponentialRampToValueAtTime(0.0001,t+rel);
+
+    /* parciales: los agudos mueren antes, por eso suena a golpe y no a zumbido */
+    var partials=[[1,1.0],[2,0.42],[3,0.20],[4.2,0.09]];
+    var oscs=[];
+    for(var i=0;i<partials.length;i++){
+      var o=ac.createOscillator(), pg=ac.createGain();
+      o.type='sine';
+      o.frequency.value=f*partials[i][0];
+      pg.gain.setValueAtTime(partials[i][1],t);
+      pg.gain.exponentialRampToValueAtTime(0.0001,t+rel*(0.25+i*0.22)+0.1);
+      o.connect(pg);pg.connect(g);
+      o.start(t);o.stop(t+rel+0.2);
+      oscs.push(o);
+    }
+    g.connect(master);
+
+    var voice={g:g,oscs:oscs};
+    voices.push(voice);
+    window.setTimeout(function(){
+      var k=voices.indexOf(voice);
+      if(k!==-1)voices.splice(k,1);
+      try{g.disconnect();}catch(e){}
+    },(rel+0.35)*1000);
+  }
+
+  /* ---------- construcción del teclado ---------- */
+  var keysHost=document.getElementById('keys');
+  var fallBar=document.getElementById('fall');
+  var status=document.getElementById('status');
+
+  function build(octaves){
+    keysHost.textContent='';
+    var whiteTotal=octaves*7;
+    var ww=100/whiteTotal;
+    var wi=0;
+    for(var o=0;o<octaves;o++){
+      var oct=o+3;
+      for(var n=0;n<12;n++){
+        var el=document.createElement('div');
+        var label=NOTES[n]+oct;
+        el.dataset.n=n;
+        el.dataset.oct=oct;
+        el.setAttribute('aria-label',label);
+        el.setAttribute('role','button');
+        el.setAttribute('tabindex','-1');
+        if(SHARP[n]){
+          el.className='bk';
+          el.style.width=(ww*0.62)+'%';
+          el.style.left=(ww*wi-ww*0.31)+'%';
+        }else{
+          el.className='wk';
+          el.style.width=ww+'%';
+          el.style.left=(ww*wi)+'%';
+          wi++;
+        }
+        el.textContent=label;
+        keysHost.appendChild(el);
+      }
+    }
+  }
+
+  function flash(el){
+    var kr=keysHost.getBoundingClientRect();
+    var r=el.getBoundingClientRect();
+    var w=r.width/kr.width*100;
+    var c=(r.left-kr.left)/kr.width*100;
+    fallBar.style.width=w.toFixed(2)+'%';
+    fallBar.style.left=c.toFixed(2)+'%';
+    fallBar.style.opacity='1';
+    window.clearTimeout(fallBar._t);
+    fallBar._t=window.setTimeout(function(){fallBar.style.opacity='0';},190);
+  }
+
+  function strike(el,vel){
+    el.classList.add('on');
+    window.clearTimeout(el._t);
+    el._t=window.setTimeout(function(){el.classList.remove('on');},150);
+    play(+el.dataset.n,+el.dataset.oct,vel||0.75);
+    flash(el);
+    status.textContent=NOTES[+el.dataset.n]+(+el.dataset.oct);
+  }
+
+  function keyAt(x,y){
+    var el=document.elementFromPoint(x,y);
+    return el&&el.closest?el.closest('.wk,.bk'):null;
+  }
+
+  /* puntero: pulsar y deslizar; la captura en el contenedor también sirve para táctil */
+  var dragging=false, lastKey=null;
+  keysHost.addEventListener('pointerdown',function(e){
+    var el=keyAt(e.clientX,e.clientY);
+    if(!el)return;
+    e.preventDefault();
+    dragging=true;
+    lastKey=el;
+    var r=el.getBoundingClientRect();
+    var v=0.5+0.5*Math.max(0,Math.min(1,(e.clientY-r.top)/r.height));
+    strike(el,v);
+    try{keysHost.setPointerCapture(e.pointerId);}catch(err){}
+  });
+  keysHost.addEventListener('pointermove',function(e){
+    if(!dragging)return;
+    var el=keyAt(e.clientX,e.clientY);
+    if(el&&el!==lastKey){
+      lastKey=el;
+      strike(el,0.7);
+    }
+  });
+  function endDrag(){dragging=false;lastKey=null;}
+  keysHost.addEventListener('pointerup',endDrag);
+  keysHost.addEventListener('pointercancel',endDrag);
+  window.addEventListener('pointerup',endDrag);
+
+  /* ---------- teclado del ordenador ---------- */
+  var MAP={'a':0,'w':1,'s':2,'e':3,'d':4,'f':5,'t':6,'g':7,'y':8,'h':9,'u':10,'j':11,'k':12,'o':13,'l':14};
+  var held={};
+  document.addEventListener('keydown',function(e){
+    if(e.metaKey||e.ctrlKey||e.altKey)return;
+    var k=e.key.toLowerCase();
+    if(!(k in MAP)||held[k])return;
+    held[k]=true;
+    var idx=MAP[k], oct=3+Math.floor(idx/12), n=idx%12;
+    var el=keysHost.querySelector('[data-n="'+n+'"][data-oct="'+oct+'"]');
+    if(el)strike(el,0.6+Math.random()*0.35);
+  });
+  document.addEventListener('keyup',function(e){delete held[e.key.toLowerCase()];});
+  window.addEventListener('blur',function(){held={};endDrag();});
+
+  /* ---------- controles ---------- */
+  document.getElementById('oct').addEventListener('input',function(){
+    var v=+this.value;
+    document.getElementById('octV').textContent=v;
+    build(v);
+    endDrag();
+  });
+  document.getElementById('rel').addEventListener('input',function(){
+    release=+this.value;
+    document.getElementById('relV').textContent=release;
+  });
+  document.getElementById('rev').addEventListener('input',function(){
+    reverb=+this.value;
+    document.getElementById('revV').textContent=reverb;
+    if(revGain)revGain.gain.setTargetAtTime(reverb/140,ac.currentTime,0.1);
+  });
+  var sb=document.getElementById('sustain');
+  sb.addEventListener('click',function(){
+    sustain=!sustain;
+    this.classList.toggle('on',sustain);
+    this.setAttribute('aria-pressed',String(sustain));
+    if(!sustain)dampAll();
+  });
+
+  /* ---------- figura ---------- */
+  var FIG=[0,2,4,7,9,7,4,2,0,4,7,11,12,11,7,4];
+  var di=0, dtimer=null;
+  var db=document.getElementById('demo');
+  function stopFigure(){
+    if(dtimer){window.clearInterval(dtimer);dtimer=null;}
+    db.classList.remove('on');
+    db.textContent='Tocar una figura';
+  }
+  db.addEventListener('click',function(){
+    if(dtimer){stopFigure();return;}
+    if(!initAudio())return;
+    db.classList.add('on');
+    db.textContent='Detener figura';
+    di=0;
+    dtimer=window.setInterval(function(){
+      var idx=FIG[di%FIG.length];
+      var el=keysHost.querySelector('[data-n="'+(idx%12)+'"][data-oct="'+(3+Math.floor(idx/12))+'"]');
+      if(el)strike(el,0.55+Math.random()*0.4);
+      di++;
+      if(di>=FIG.length*2)stopFigure();
+    },230);
+  });
+
+  build(3);
+})();
+</script>
+</body>
+</html>
